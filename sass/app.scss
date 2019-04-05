@@ -1,0 +1,51 @@
+* {
+  box-sizing: border-box;
+}
+
+.car_select_component {
+
+  .preselect_element {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 350px;
+    .input_preselect {
+      height: 40px;
+      width: 100%;
+      padding: 0px 10px;
+    }
+    .preselect_list_container {
+      width: 100%;
+      height: 0px;
+      z-index: 50;
+      ul.preselect_list {
+        background-color: #fff;
+        margin: 0px;
+        padding: 0px;
+        overflow-y: auto;
+        width: inherit;
+        height: auto;
+        max-height: 150px;
+        display: none;
+        border: 1px solid grey;
+        position: relative;
+        &.open {
+          display: block;
+        }
+
+        li.preselect_item {
+          padding: 8px 10px;
+          cursor: pointer;
+          transition: color 0.1s ease;
+          &.selected {
+            background-color: blue;
+          }
+          &:hover {
+            color: red;
+          }
+        }
+      }
+    }
+  }
+
+}
