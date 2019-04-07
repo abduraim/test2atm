@@ -11,7 +11,10 @@
 
   <div class="preselect_element" data-field="car_mark">
     <label for="car_mark">Марка авто:</label>
-    <input type="text" name="car_mark" id="car_mark" class="input_preselect">
+    <div class="input_container">
+      <input type="text" name="car_mark" id="car_mark" class="input_preselect">
+      <button class="btn_open_select"><span></span></button>
+    </div>
     <div class="preselect_list_container">
       <ul class="preselect_list collapsible">
         <!--<li class="item">asdf</li>-->
@@ -20,8 +23,12 @@
   </div>
 
   <div class="preselect_element" data-field="car_model">
-    <label for="car_model">Марка авто:</label>
-    <input type="text" name="car_model" id="car_model" class="input_preselect">
+    <label for="car_model">Модель авто:</label>
+    <div class="input_container">
+      <input type="text" name="car_model" id="car_model" class="input_preselect">
+      <button class="btn_open_select"><span></span></button>
+    </div>
+
     <div class="preselect_list_container">
       <ul class="preselect_list collapsible">
         <!--<li class="item">asdf</li>-->
@@ -30,7 +37,10 @@
   </div>
 
   <div class="preselect_element" data-field="car_type">
-    <input type="text" name="car_type" id="car_type" class="input_preselect" disabled>
+    <label for="car_type">Тип авто:</label>
+    <div class="input_container">
+      <input type="text" name="car_type" id="car_type" class="input_preselect" disabled>
+    </div>
   </div>
 
 </div>

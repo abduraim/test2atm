@@ -28,16 +28,40 @@ var rollUpCollapsible = function () {
 };
 
 
-
+const MARK_FIELD_NAME = 'car_mark';
+const MODEL_FIELD_NAME = 'car_model';
+const TYPE_FIELD_NAME = 'car_type';
 
 let CarSelectComponent = function ($container) {
     let self = this;
     this.$container = $container;
 
-    this.InputMark = new InputBox(this.$container.find('.preselect_element[data-field=car_mark]'));
-    this.InputModel = new InputBox(this.$container.find('.preselect_element[data-field=car_model]'));
+    this.InputMark = new InputBox(this.$container.find('.preselect_element[data-field=' + MARK_FIELD_NAME + ']'));
+
+    this.InputModel = new InputBox(this.$container.find('.preselect_element[data-field=' + MODEL_FIELD_NAME + ']'));
+
+    this.$inputType = this.$container.find('input#car_type');
 
 
+
+    this.InputMark.loadMarkList();
+    this.InputMark.addTranslateValuesToSource();
+
+
+
+
+    this.InputMark.$input.on('update.value', function (event) {
+        self.InputModel.loadModelList(event[MARK_FIELD_NAME]);
+        self.InputModel.addTranslateValuesToSource();
+    });
+
+    this.InputModel.$input.on('update.value', function (event) {
+        for (carKey in self.InputModel.currentSelectArray) {
+            if (self.InputModel.currentSelectArray[carKey][MODEL_FIELD_NAME] == event[MODEL_FIELD_NAME]) {
+                self.$inputType.val(self.InputModel.currentSelectArray[carKey]['car_type']);
+            }
+        }
+    });
 };
 
 
@@ -48,35 +72,28 @@ var InputBox = function ($element) {
 
     this.$element = $element;
     this.$input = this.$element.find('input');
+    this.$btnOpenSelectList = this.$element.find('button.btn_open_select');
     this.$list = this.$element.find('ul.preselect_list');
 
     // Название свойства в исходном массиве
     this.fieldName = this.$element.data('field');
 
-    // Список Авто
-    this.sourceArray = this.getSourceArray();
-
     // Массив транслитерации
     this.translateAlphabet = this.getTranslateAlphabet();
 
-    // Добавляем переводы в исходный массив
-    this.addTranslateValuesToSource();
-
-    // Текущий список подсказок
-    this.currentSelectArray = this.sourceArray;
-
+    // Позиция селекта при движении стрелок вверх/вниз
     this.currentSelectLineInListPosition = -1;
-
 
     // Обработка ввода
     this.$input.on('change', function (event) {
-        console.log($(this).val());
         this.currentSelectLineInListPosition = -1;
+        self.selValue();
     });
 
 
     this.$input.on('keydown', function (event) {
         var code = event.keyCode || event.which;
+        console.log(code);
         if (code === 13 && self.currentSelectArray.length) { // enter
 
             rollUpCollapsible();
@@ -88,6 +105,10 @@ var InputBox = function ($element) {
             // focus on next input
             //$(this).blur();
 
+        } else if (code === 9) {        // tab
+            self.currentSelectLineInListPosition = -1;
+            rollUpCollapsible();
+            self.$input.trigger('change');
         } else if (code === 27 && self.currentSelectArray.length) { // esc
             rollUpCollapsible();
         } else if (code === 40 && self.currentSelectArray.length) { // стрелка вниз
@@ -111,6 +132,13 @@ var InputBox = function ($element) {
 
     this.$input.on('click', function (event) {
         event.stopPropagation();
+        self.refreshSelectList();
+        self.showSelectList();
+    });
+
+    this.$btnOpenSelectList.on('click', function (event) {
+        event.stopPropagation();
+        self.$input.val('');
         self.refreshSelectList();
         self.showSelectList();
     })
@@ -217,18 +245,74 @@ InputBox.prototype.getSourceArray = function () {
         9: {
             'car_mark': 'audi',
             'car_model': 'asdfasdf',
-            'car_type': 'легковой',
+            'car_type': 'кроссовер',
         },
     };
     return str;
 };
 
+
+
+// Получаем список возможных марок Авто
+InputBox.prototype.loadMarkList = function() {
+
+    let result = {};
+
+    $.ajax({
+        url: '/ajax.php',
+        type: 'POST',
+        timeout: 1000,
+        dataType: 'json',
+        async: false,
+        context: this,
+        data: {
+            'get_car_marks': true,
+        },
+        success: function (json) {
+            this.sourceArray = json;
+        },
+        error: function (error) {
+            console.log(error);
+        }
+    });
+
+    return result;
+
+};
+
+// Получаем список Моделей соответствущего Авто
+InputBox.prototype.loadModelList = function(car_mark) {
+
+    let result = {};
+
+    $.ajax({
+        url: '/ajax.php',
+        type: 'POST',
+        timeout: 1000,
+        dataType: 'json',
+        async: false,
+        context: this,
+        data: {
+            'get_car_models': true,
+            'car_mark': car_mark,
+        },
+        success: function (json) {
+            this.sourceArray = json;
+        },
+        error: function (error) {
+            console.log(error);
+        }
+    });
+
+};
+
+
 // Добавляем "неправильные" значения в массив для будущего сравнения с вводом
 InputBox.prototype.addTranslateValuesToSource = function() {
     for (car in this.sourceArray) {
+
         this.sourceArray[car][this.fieldName + '_trans'] = this.getTranslate(this.sourceArray[car][this.fieldName]);
     }
-    console.log(this.sourceArray);
 };
 
 // Возвращает переведенное слово
@@ -368,7 +452,24 @@ InputBox.prototype.renderSelectList = function () {
 
 };
 
+// Ренедериг Выпадающего спика (специально для Моделей)
+InputBox.prototype.refreshModeSelectList = function (mark_name) {
+    for (carKey in this.currentSelectArray) {
+        if (this.currentSelectArray[carKey][MARK_FIELD_NAME] != mark_name) {
+            delete this.currentSelectArray[carKey];
+        }
+    }
+};
+
+// Отобразить тип Авто
+InputBox.prototype.refreshCarTypeField = function (typeName) {
+
+};
+
 // Окончательный выбор значения
 InputBox.prototype.selValue = function () {
-    console.log();
+    // Отправляем данные в Основной компонент
+    var myEvent = jQuery.Event('update.value');
+    myEvent[this.fieldName] = this.$input.val();
+    this.$input.trigger(myEvent);
 };
